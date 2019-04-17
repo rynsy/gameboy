@@ -2,9 +2,14 @@
 
 use std::fmt; 
 
-#[derive(Copy, Clone)]
-#[allow(non_snake_case)]
 struct CPU {
+    reg: Registers,
+    flag: u8,
+}
+
+#[allow(non_snake_case)]
+#[derive(Copy, Clone)]
+struct Registers {
     /*
      *      Paired like this in 2-byte words:
      *          AF
@@ -26,21 +31,20 @@ struct CPU {
     F: u8,
     H: u8,
     L: u8,
-    AF: u16,    /* Couldn't find a good way to overlay these with the 8 bit regs */
+    AF: u16,    /* Couldn't find a good way to overlay these with the 8 bit reg */
     BC: u16,
     DE: u16,
     HL: u16,
-    FLAG: u8,
 }
 
 impl fmt::Display for CPU {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "(PC: {}, SP: {}, A: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}, AF: {}, BC: {}, DE: {}, HL: {}, FLAG: {})", 
-            self.PC, self.SP, self.A, self.B, self.C, self.D,
-            self.E, self.F, self.H, self.L, self.AF, self.BC, 
-            self.DE, self.HL, self.FLAG
+            "(PC: {}, SP: {}, A: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}, AF: {}, BC: {}, DE: {}, HL: {}, flag: {})", 
+            self.reg.PC, self.reg.SP, self.reg.A, self.reg.B, self.reg.C, self.reg.D,
+            self.reg.E, self.reg.F, self.reg.H, self.reg.L, self.reg.AF, self.reg.BC, 
+            self.reg.DE, self.reg.HL, self.flag
             )
     }
 }
@@ -48,6 +52,14 @@ impl fmt::Display for CPU {
 impl Default for CPU {
     fn default() -> CPU {
         CPU {
+            reg: Default::default(),
+            flag: 0,
+        }
+    }
+}
+impl Default for Registers {
+    fn default() -> Registers {
+        Registers {
             PC: 0x100,
             SP: 0xFFFE,      /* Should be the highest available address in memory. Decrements before putting something on the stack. */
             A: 0,
@@ -62,53 +74,52 @@ impl Default for CPU {
             BC: 0,
             DE: 0,
             HL: 0,
-            FLAG: 0,
         }
     }
 }
 
 impl CPU {
     fn step(&mut self) {
-        self.PC += 1;
+        self.reg.PC += 1;
     }
     
-    fn load(&mut self, reg: &str, val: u16) {
+    fn load(&mut self,  reg: &str, val: u16) {
         match reg {
             "A" => {
-               self.A = (val & 0xF) as u8;
+               self.reg.A = (val & 0xF) as u8;
             },
             "B" => {
-               self.B = (val & 0xF) as u8;
+               self.reg.B = (val & 0xF) as u8;
             },
             "C" => {
-               self.C = (val & 0xF) as u8;
+               self.reg.C = (val & 0xF) as u8;
             },
             "D" => {
-               self.D = (val & 0xF) as u8;
+               self.reg.D = (val & 0xF) as u8;
             },
             "E" => {
-               self.E = (val & 0xF) as u8;
+               self.reg.E = (val & 0xF) as u8;
             },
             "F" => {
-               self.F = (val & 0xF) as u8;
+               self.reg.F = (val & 0xF) as u8;
             },
             "H" => {
-               self.H = (val & 0xF) as u8;
+               self.reg.H = (val & 0xF) as u8;
             },
             "L" => {
-               self.L = (val & 0xF) as u8;
+               self.reg.L = (val & 0xF) as u8;
             },
             "AF" => {
-               self.AF = val;
+               self.reg.AF = val;
             },
             "BC" => {
-               self.BC = val;
+               self.reg.BC = val;
             },
             "DE" => {
-               self.DE = val;
+               self.reg.DE = val;
             },
             "HL" => {
-               self.HL = val;
+               self.reg.HL = val;
             },
             _ => println!("Couldn't match a register!"),
         }
@@ -117,16 +128,16 @@ impl CPU {
     fn toggle_flag(&mut self, flag: &str) {
         match flag {
             "Z" => {
-                self.FLAG ^= 0b1000000 
+                self.flag ^= 0b1000000 
             },
             "N" => {
-                self.FLAG ^= 0b0100000 
+                self.flag ^= 0b0100000 
             },
             "H" => {
-                self.FLAG ^= 0b0010000 
+                self.flag ^= 0b0010000 
             },
             "C" => {
-                self.FLAG ^= 0b0001000 
+                self.flag ^= 0b0001000 
             },
             _ => println!("Couldn't match a flag!"),
         }
@@ -134,19 +145,19 @@ impl CPU {
 
     fn flag_z(&self) -> bool {
         // is Zero Flag set?
-        (self.FLAG & 0b1000000) != 0
+        (self.flag & 0b1000000) != 0
     }
     fn flag_n(&self) -> bool {
         // is Subtract Flag set?
-        (self.FLAG & 0b0100000) != 0
+        (self.flag & 0b0100000) != 0
     }
     fn flag_h(&self) -> bool {
         // is Half Carry Flag set?
-        (self.FLAG & 0b0010000) != 0
+        (self.flag & 0b0010000) != 0
     }
     fn flag_c(&self) -> bool {
         // is Carry Flag set?
-        (self.FLAG & 0b0001000) != 0
+        (self.flag & 0b0001000) != 0
     }
 }
 
@@ -164,29 +175,30 @@ mod tests {
     fn test_step() {
         let mut a: CPU = Default::default();
         a.step();
-        assert_eq!(a.PC, 0x100 + 1);
+        assert_eq!(a.reg.PC, 0x100 + 1);
     }
 
     #[test]
     fn test_copy() {
         let mut a: CPU = Default::default(); 
+        let mut b: CPU = Default::default(); 
         a.step();
-        let b = a;
-        assert_eq!(a.PC, 0x100 + 1);
-        assert_eq!(a.PC, b.PC);
+        b.reg = a.reg;
+        assert_eq!(a.reg.PC, 0x100 + 1);
+        assert_eq!(a.reg.PC, b.reg.PC);
     }
 
     #[test]
     fn test_load_a() {
         let mut a: CPU = Default::default();
         a.load("A", 4);
-        assert_eq!(a.A, 4);
+        assert_eq!(a.reg.A, 4);
         a.load("A", 3);
-        assert_eq!(a.A, 3);
+        assert_eq!(a.reg.A, 3);
         a.load("A", 2);
-        assert_eq!(a.A, 2);
+        assert_eq!(a.reg.A, 2);
         a.load("A", 1);
-        assert_eq!(a.A, 1);
+        assert_eq!(a.reg.A, 1);
     }
 
     #[test]
