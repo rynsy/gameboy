@@ -131,16 +131,16 @@ pub mod cpu {
         pub fn toggle_flag(&mut self, flag: &str) {
             match flag {
                 "Z" => {
-                    self.reg.AF ^= 0b1000000 
+                    self.reg.AF ^= 1 << 7
                 },
                 "N" => {
-                    self.reg.AF ^= 0b0100000 
+                    self.reg.AF ^= 1 << 6
                 },
                 "H" => {
-                    self.reg.AF ^= 0b0010000 
+                    self.reg.AF ^= 1 << 5
                 },
                 "C" => {
-                    self.reg.AF ^= 0b0001000 
+                    self.reg.AF ^= 1 << 4
                 },
                 _ => println!("Couldn't match a flag!"),
             }
