@@ -34,9 +34,11 @@ pub mod cpu {
 
     impl fmt::Display for CPU {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(
-                f,
-                "CPU \n{{\n\t PC: {:#018b},\n\t SP: {:#018b},\n\t A: {:#010b},\n\t B: {:#010b},\n\t C: {:#010b},\n\t D: {:#010b},\n\t E: {:#010b},\n\t F: {:#010b},\n\t H: {:#010b},\n\t L: {:#010b},\n\t AF: {:#018b},\n\t BC: {:#018b},\n\t DE: {:#018b},\n\t HL: {:#018b},\n\t flags (F): {:#010b}\n}}", 
+            write!(f, 
+                "CPU \n{{\n\t PC: {:#018b},\n\t SP: {:#018b},\n\t A: {:#010b},\n\t 
+                        B: {:#010b},\n\t C: {:#010b},\n\t D: {:#010b},\n\t E: {:#010b},\n\t 
+                        F: {:#010b},\n\t H: {:#010b},\n\t L: {:#010b},\n\t AF: {:#018b},\n\t 
+                        BC: {:#018b},\n\t DE: {:#018b},\n\t HL: {:#018b},\n\t flags (F): {:#010b}\n}}", 
                 self.reg.PC, 
                 self.reg.SP, 
                 ((self.reg.AF & 0xF0) >> 8) as u8, 
@@ -64,6 +66,7 @@ pub mod cpu {
             }
         }
     }
+
     impl Default for Registers {
         fn default() -> Registers {
             Registers {
