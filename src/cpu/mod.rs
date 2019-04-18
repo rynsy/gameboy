@@ -18,27 +18,15 @@ pub mod cpu {
     #[derive(Copy, Clone)]
     struct Registers {
         /*
-         *      Paired like this in 2-byte words:
-         *          AF
-         *          BC
-         *          DE
-         *          HL
-         *          SP
-         *          PC
-         *      Flag:
+         *      Registers are all 16 bit, CPU is 8-bit. Individual registers
+         *      are referenced/modified with masking.
+         *
+         *      Flag (F Register):
          *          Z N H C 0 0 0 0
          */
         PC: u16,
         SP: u16,
-        A: u8,
-        B: u8,
-        C: u8,
-        D: u8,
-        E: u8,
-        F: u8,
-        H: u8,
-        L: u8,
-        AF: u16,    /* Couldn't find a good way to overlay these with the 8 bit reg */
+        AF: u16,    
         BC: u16,
         DE: u16,
         HL: u16,
@@ -48,10 +36,14 @@ pub mod cpu {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "(PC: {}, SP: {}, A: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}, AF: {}, BC: {}, DE: {}, HL: {}, flag: {})", 
-                self.reg.PC, self.reg.SP, self.reg.A, self.reg.B, self.reg.C, self.reg.D,
-                self.reg.E, self.reg.F, self.reg.H, self.reg.L, self.reg.AF, self.reg.BC, 
-                self.reg.DE, self.reg.HL, self.flag
+                "(PC: {}, SP: {}, A: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}, AF: {}, BC: {}, DE: {}, HL: {}, flags (F): {})", 
+                self.reg.PC, self.reg.SP, 
+                self.reg.AF & 0xF0, self.reg.BC & 0xF0, 
+                self.reg.BC & 0x0F, self.reg.DE & 0xF0, 
+                self.reg.DE & 0x0F, self.reg.AF & 0x0F, 
+                self.reg.HL & 0xF0, self.reg.HL & 0x0F,
+                self.reg.AF, self.reg.BC, self.reg.DE, 
+                self.reg.HL, self.reg.AF & 0x0F,
                 )
         }
     }
@@ -69,14 +61,6 @@ pub mod cpu {
             Registers {
                 PC: 0x100,
                 SP: 0xFFFE,      /* Should be the highest available address in memory. Decrements before putting something on the stack. */
-                A: 0,
-                B: 0,
-                C: 0,
-                D: 0,
-                E: 0,
-                F: 0,
-                H: 0,
-                L: 0,
                 AF: 0,
                 BC: 0,
                 DE: 0,
@@ -90,44 +74,55 @@ pub mod cpu {
         pub fn step(&mut self) {
             self.reg.PC += 1;
         }
-        
+       
+        /*
+         *  Assumes value is in first 8 bits when loading 8-bit register.
+         */
         pub fn load(&mut self,  reg: &str, val: u16) {
             match reg {
                 "A" => {
-                   self.reg.A = (val & 0xF) as u8;
-                },
-                "B" => {
-                   self.reg.B = (val & 0xF) as u8;
-                },
-                "C" => {
-                   self.reg.C = (val & 0xF) as u8;
-                },
-                "D" => {
-                   self.reg.D = (val & 0xF) as u8;
-                },
-                "E" => {
-                   self.reg.E = (val & 0xF) as u8;
+                    self.reg.AF &= 0x0F; //Clear high-bits
+                    self.reg.AF ^= val << 8;  //Set just the high-bits
                 },
                 "F" => {
-                   self.reg.F = (val & 0xF) as u8;
+                    self.reg.AF &= 0xF0; //Clear low-bits
+                    self.reg.AF ^= val & 0x0F;  //Set just the low-bits
+                },
+                "B" => {
+                    self.reg.BC &= 0x0F;
+                    self.reg.BC ^= val << 8;
+                },
+                "C" => {
+                    self.reg.BC &= 0xF0;
+                    self.reg.BC ^= val & 0x0F;
+                },
+                "D" => {
+                    self.reg.DE &= 0x0F;
+                    self.reg.DE ^= val << 8;
+                },
+                "E" => {
+                    self.reg.DE &= 0xF0;
+                    self.reg.DE ^= val & 0x0F;
                 },
                 "H" => {
-                   self.reg.H = (val & 0xF) as u8;
+                    self.reg.HL &= 0x0F;
+                    self.reg.HL ^= val << 8; 
                 },
                 "L" => {
-                   self.reg.L = (val & 0xF) as u8;
+                    self.reg.HL &= 0xF0;
+                    self.reg.HL ^= val & 0x0F;
                 },
                 "AF" => {
-                   self.reg.AF = val;
+                    self.reg.AF = val;
                 },
                 "BC" => {
-                   self.reg.BC = val;
+                    self.reg.BC = val;
                 },
                 "DE" => {
-                   self.reg.DE = val;
+                    self.reg.DE = val;
                 },
                 "HL" => {
-                   self.reg.HL = val;
+                    self.reg.HL = val;
                 },
                 _ => println!("Couldn't match a register!"),
             }
@@ -136,36 +131,88 @@ pub mod cpu {
         pub fn toggle_flag(&mut self, flag: &str) {
             match flag {
                 "Z" => {
-                    self.flag ^= 0b1000000 
+                    self.reg.AF ^= 0b1000000 
                 },
                 "N" => {
-                    self.flag ^= 0b0100000 
+                    self.reg.AF ^= 0b0100000 
                 },
                 "H" => {
-                    self.flag ^= 0b0010000 
+                    self.reg.AF ^= 0b0010000 
                 },
                 "C" => {
-                    self.flag ^= 0b0001000 
+                    self.reg.AF ^= 0b0001000 
                 },
                 _ => println!("Couldn't match a flag!"),
             }
         }
 
-        pub fn flag_z(&self) -> bool {
+        pub fn reg_a(&self) -> u8 
+        {
+            (self.reg.AF >> 8) as u8
+        }
+        pub fn reg_b(&self) -> u8 
+        {
+            (self.reg.BC >> 8) as u8
+        }
+        pub fn reg_c(&self) -> u8 
+        {
+            (self.reg.BC & 0x0F) as u8
+        }
+        pub fn reg_d(&self) -> u8 
+        {
+            (self.reg.DE >> 8) as u8
+        }
+        pub fn reg_e(&self) -> u8 
+        {
+            (self.reg.DE & 0x0F) as u8
+        }
+        pub fn reg_f(&self) -> u8 
+        {
+            (self.reg.AF & 0x0F) as u8
+        }
+        pub fn reg_h(&self) -> u8 
+        {
+            (self.reg.HL >> 8) as u8
+        }
+        pub fn reg_l(&self) -> u8 
+        {
+            (self.reg.HL & 0x0F) as u8
+        }
+        pub fn reg_af(&self) -> u16 
+        {
+            self.reg.AF
+        }
+        pub fn reg_bc(&self) -> u16 
+        {
+            self.reg.BC
+        }
+        pub fn reg_de(&self) -> u16 
+        {
+            self.reg.DE
+        }
+        pub fn reg_hl(&self) -> u16 
+        {
+            self.reg.HL
+        }
+        pub fn flag_z(&self) -> bool 
+        {
             // is Zero Flag set?
-            (self.flag & 0b1000000) != 0
+            (self.reg.AF & 0b1000000) != 0
         }
-        pub fn flag_n(&self) -> bool {
+        pub fn flag_n(&self) -> bool 
+        {
             // is Subtract Flag set?
-            (self.flag & 0b0100000) != 0
+            (self.reg.AF & 0b0100000) != 0
         }
-        pub fn flag_h(&self) -> bool {
+        pub fn flag_h(&self) -> bool 
+        {
             // is Half Carry Flag set?
-            (self.flag & 0b0010000) != 0
+            (self.reg.AF & 0b0010000) != 0
         }
-        pub fn flag_c(&self) -> bool {
+        pub fn flag_c(&self) -> bool 
+        {
             // is Carry Flag set?
-            (self.flag & 0b0001000) != 0
+            (self.reg.AF & 0b0001000) != 0
         }
     }
     #[cfg(test)]
@@ -192,13 +239,17 @@ pub mod cpu {
         fn test_load_a() {
             let mut a: CPU = Default::default();
             a.load("A", 4);
-            assert_eq!(a.reg.A, 4);
+            assert_eq!(a.reg.AF >> 8 as u8, 4);
+            assert_eq!(a.reg_a(), 4);
             a.load("A", 3);
-            assert_eq!(a.reg.A, 3);
+            assert_eq!(a.reg.AF >> 8 as u8, 3);
+            assert_eq!(a.reg_a(), 3);
             a.load("A", 2);
-            assert_eq!(a.reg.A, 2);
+            assert_eq!(a.reg.AF >> 8 as u8, 2);
+            assert_eq!(a.reg_a(), 2);
             a.load("A", 1);
-            assert_eq!(a.reg.A, 1);
+            assert_eq!(a.reg.AF >> 8 as u8, 1);
+            assert_eq!(a.reg_a(), 1);
         }
 
         #[test]
