@@ -36,14 +36,22 @@ pub mod cpu {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "(PC: {}, SP: {}, A: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}, AF: {}, BC: {}, DE: {}, HL: {}, flags (F): {})", 
-                self.reg.PC, self.reg.SP, 
-                self.reg.AF & 0xF0, self.reg.BC & 0xF0, 
-                self.reg.BC & 0x0F, self.reg.DE & 0xF0, 
-                self.reg.DE & 0x0F, self.reg.AF & 0x0F, 
-                self.reg.HL & 0xF0, self.reg.HL & 0x0F,
-                self.reg.AF, self.reg.BC, self.reg.DE, 
-                self.reg.HL, self.reg.AF & 0x0F,
+                "CPU \n{{\n\t PC: {:#018b},\n\t SP: {:#018b},\n\t A: {:#010b},\n\t B: {:#010b},\n\t C: {:#010b},\n\t D: {:#010b},\n\t E: {:#010b},\n\t F: {:#010b},\n\t H: {:#010b},\n\t L: {:#010b},\n\t AF: {:#018b},\n\t BC: {:#018b},\n\t DE: {:#018b},\n\t HL: {:#018b},\n\t flags (F): {:#010b}\n}}", 
+                self.reg.PC, 
+                self.reg.SP, 
+                ((self.reg.AF & 0xF0) >> 8) as u8, 
+                ((self.reg.BC & 0xF0) >> 8) as u8, 
+                (self.reg.BC & 0x0F) as u8, 
+                ((self.reg.DE & 0xF0) >> 8) as u8, 
+                (self.reg.DE & 0x0F) as u8, 
+                (self.reg.AF & 0x0F) as u8, 
+                ((self.reg.HL & 0xF0) >> 8) as u8, 
+                (self.reg.HL & 0x0F) as u8,
+                self.reg.AF, 
+                self.reg.BC, 
+                self.reg.DE, 
+                self.reg.HL, 
+                (self.reg.AF & 0x0F) as u8,
                 )
         }
     }
@@ -197,22 +205,22 @@ pub mod cpu {
         pub fn flag_z(&self) -> bool 
         {
             // is Zero Flag set?
-            (self.reg.AF & 0b1000000) != 0
+            (self.reg.AF & 1 << 7) != 0
         }
         pub fn flag_n(&self) -> bool 
         {
             // is Subtract Flag set?
-            (self.reg.AF & 0b0100000) != 0
+            (self.reg.AF & 1 << 6) != 0
         }
         pub fn flag_h(&self) -> bool 
         {
             // is Half Carry Flag set?
-            (self.reg.AF & 0b0010000) != 0
+            (self.reg.AF & 1 << 5) != 0
         }
         pub fn flag_c(&self) -> bool 
         {
             // is Carry Flag set?
-            (self.reg.AF & 0b0001000) != 0
+            (self.reg.AF & 1 << 4) != 0
         }
     }
     #[cfg(test)]
