@@ -14,7 +14,7 @@
  * the register name (and sign-modifier) is followed by _ptr (example: LD (HL+), 4 => LD_HL_p_ptr_4)
  *
  */
-#[derive(Debug)]
+#[derive(Debug, FromPrimitive)]
 #[allow(non_camel_case_types)]
 pub enum Instruction {
     NOP,
@@ -288,4 +288,10 @@ pub enum Instruction {
     DEAD_OP11,
     CP_d8,
     RST_38H,
+}
+
+impl Instruction {
+    pub fn from_u32(value: u32) -> Option<Self> {
+        num::FromPrimitive::from_u32(value)
+    }
 }
