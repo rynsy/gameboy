@@ -16,7 +16,7 @@
  */
 #[derive(Debug, FromPrimitive)]
 #[allow(non_camel_case_types)]
-pub enum Instruction {
+pub enum OpCode {
     NOP,
     LD_BC_d16,
     LD_BC_ptr_A,
@@ -290,8 +290,8 @@ pub enum Instruction {
     RST_38H,
 }
 
-impl Instruction {
-    pub fn from_u32(value: u32) -> Option<Self> {
+impl OpCode {
+    pub fn from_u32(value: u32) -> Option<Self> {       //TODO: Refactor to u16 (breaks the trait for some reason)
         num::FromPrimitive::from_u32(value)
     }
 }

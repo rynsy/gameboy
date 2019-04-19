@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 
-pub mod instructions;
+pub mod opcodes;
 
 pub mod cpu {
     use std::fmt; 
+    use super::opcodes::*;
 
     pub struct CPU {
         reg: Registers,
@@ -81,6 +82,14 @@ pub mod cpu {
     }
 
     impl CPU {
+
+        pub fn decode(&self) {
+            let a = OpCode::from_u32(0);
+            match a {
+                Some(OpCode::NOP) => println!("Found a NOP"),
+                _ => println!("Dunno what I found"),
+            }
+        }
 
         pub fn step(&mut self) {
             self.reg.PC += 1;
