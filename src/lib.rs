@@ -1,5 +1,4 @@
 mod cpu;
-mod rom;
 mod mmap;
 pub mod gb;
 

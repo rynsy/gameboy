@@ -5,6 +5,7 @@ pub mod opcodes;
 use std::fmt; 
 use self::opcodes::*;
 
+#[derive(Default)]
 pub struct CPU {
     reg: Registers,
     flag: u8,
@@ -58,15 +59,6 @@ impl fmt::Display for CPU {
     }
 }
 
-impl Default for CPU {
-    fn default() -> CPU {
-        CPU {
-            reg: Default::default(),
-            flag: 0,
-        }
-    }
-}
-
 impl Default for Registers {
     fn default() -> Registers {
         Registers {
@@ -81,7 +73,6 @@ impl Default for Registers {
 }
 
 impl CPU {
-
     pub fn decode(&self) {
         let a = OpCode::from_u32(0);
         match a {
