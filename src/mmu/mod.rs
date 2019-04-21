@@ -1,15 +1,15 @@
 use std::fs;
 use std::fmt; 
 
-pub struct MMap {
+pub struct MMUnit {
     data: Vec<u8>,
     rom_info: ROM,
 }
 
-impl Default for MMap {
-    fn default() -> MMap {
+impl Default for MMUnit {
+    fn default() -> MMUnit {
         let vec: Vec<u8> = vec![0; 0xFFFF];
-        MMap{
+        MMUnit{
             data: vec,
             rom_info: ROM::default(),
         }
@@ -41,13 +41,22 @@ impl fmt::Display for ROM {
     }
 }
 
-impl MMap {
-    pub fn write(&mut self, addr: u8, val: u8 ) {   // TODO: Value may be u8
+impl MMUnit {
+    pub fn set(&mut self, addr: u16, val: u8 ) {   // TODO: Value may be u8
         self.data[addr as usize] = val;
     }
 
-    pub fn read(&self, addr: u8 ) -> u8 { // TODO: May return u8
+    pub fn get(&self, addr: u16) -> u8 {
         self.data[addr as usize]
+    }
+
+    pub fn get_hw(&self, addr: u16) -> u16 {
+        ((self.data[(addr+1) as usize] << 8) | self.data[(addr) as usize] ) as u16
+    }
+
+    pub fn set_hw(&mut self, addr: u16, val: u16) {
+       self.data[addr as usize]  = (val & 0x0F) as u8; 
+       self.data[(addr+1) as usize]  = (val & 0xF0) as u8; 
     }
 
     pub fn load_rom(&mut self) { //TODO pass filename/path
@@ -66,20 +75,20 @@ impl MMap {
 
 #[cfg(test)]
 mod tests {
-    use super::MMap;
+    use super::MMUnit;
 
     #[test]
     fn test_write() {
-        let mut a: MMap = Default::default();
-        a.write(0, 10);
+        let mut a: MMUnit = Default::default();
+        a.set(0, 10);
     }
 
     #[test]
     fn test_read() {
         let val = 10;
-        let mut a: MMap = Default::default();
-        a.write(0, val);
-        let b = a.read(0);
+        let mut a: MMUnit = Default::default();
+        a.set(0, val);
+        let b = a.get(0);
         assert_eq!(val, b);
     }
 }

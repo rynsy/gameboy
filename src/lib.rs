@@ -1,5 +1,5 @@
 mod cpu;
-mod mmap;
+mod mmu;
 pub mod gb;
 
 /*
