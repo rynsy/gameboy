@@ -73,14 +73,6 @@ impl Default for Registers {
 }
 
 impl CPU {
-    pub fn decode(&self) {
-        let a = OpCode::from_u32(0);
-        match a {
-            Some(OpCode::NOP) => println!("Found a NOP"),
-            _ => println!("Dunno what I found"),
-        }
-    }
-
     pub fn step(&mut self) {
         self.reg.PC += 1;
     }
@@ -156,73 +148,119 @@ impl CPU {
         }
     }
 
-    pub fn reg_a(&self) -> u8 
-    {
+    pub fn reg_a(&self) -> u8 {
         (self.reg.AF >> 8) as u8
     }
-    pub fn reg_b(&self) -> u8 
-    {
+    pub fn reg_b(&self) -> u8 {
         (self.reg.BC >> 8) as u8
     }
-    pub fn reg_c(&self) -> u8 
-    {
+    pub fn reg_c(&self) -> u8 {
         (self.reg.BC & 0x0F) as u8
     }
-    pub fn reg_d(&self) -> u8 
-    {
+    pub fn reg_d(&self) -> u8 {
         (self.reg.DE >> 8) as u8
     }
-    pub fn reg_e(&self) -> u8 
-    {
+    pub fn reg_e(&self) -> u8 {
         (self.reg.DE & 0x0F) as u8
     }
-    pub fn reg_f(&self) -> u8 
-    {
+    pub fn reg_f(&self) -> u8 {
         (self.reg.AF & 0x0F) as u8
     }
-    pub fn reg_h(&self) -> u8 
-    {
+    pub fn reg_h(&self) -> u8 {
         (self.reg.HL >> 8) as u8
     }
-    pub fn reg_l(&self) -> u8 
-    {
+    pub fn reg_l(&self) -> u8 {
         (self.reg.HL & 0x0F) as u8
     }
-    pub fn reg_af(&self) -> u16 
-    {
+    pub fn reg_af(&self) -> u16 {
         self.reg.AF
     }
-    pub fn reg_bc(&self) -> u16 
-    {
+    pub fn reg_bc(&self) -> u16 {
         self.reg.BC
     }
-    pub fn reg_de(&self) -> u16 
-    {
+    pub fn reg_de(&self) -> u16 {
         self.reg.DE
     }
-    pub fn reg_hl(&self) -> u16 
-    {
+    pub fn reg_hl(&self) -> u16 {
         self.reg.HL
     }
-    pub fn flag_z(&self) -> bool 
-    {
+    pub fn flag_z(&self) -> bool {
         // is Zero Flag set?
         (self.reg.AF & 1 << 7) != 0
     }
-    pub fn flag_n(&self) -> bool 
-    {
+    pub fn flag_n(&self) -> bool {
         // is Subtract Flag set?
         (self.reg.AF & 1 << 6) != 0
     }
-    pub fn flag_h(&self) -> bool 
-    {
+    pub fn flag_h(&self) -> bool {
         // is Half Carry Flag set?
         (self.reg.AF & 1 << 5) != 0
     }
-    pub fn flag_c(&self) -> bool 
-    {
+    pub fn flag_c(&self) -> bool {
         // is Carry Flag set?
         (self.reg.AF & 1 << 4) != 0
+    }
+
+    #[allow(non_snake_case)]
+    pub fn decode(&mut self) {  // TODO: Need a stream of instructions here
+        let a = OpCode::from_u32(0);
+        match a {
+            Some(NOP) => {
+                println!("Found a NOP")
+            },
+            Some(LD_BC_d16) => {
+                println!("Found LD_BC_d16")
+            },
+            Some(LD_BC_ptr_d16) => {
+                println!("Found LD_BC_ptr_d16")
+            },
+            Some(INC_BC) => {
+                println!("Found INC_BC")
+                self.load("BC", self.reg_bc() + 1);
+            },
+            Some(INC_B) => {
+                println!("Found INC_B")
+                self.load("B", self.reg_b() + 1);
+            },
+            Some(DEC_B) => {
+                println!("Found DEC_B")
+                self.load("B", self.reg_b() - 1);
+            },
+            Some(LD_B_d8) => {
+                println!("Found LD_B_d8")
+            },
+            Some(RLCA) => {
+                println!("Found RLCA")
+            },
+            Some(LD_a16_ptr_SP) => {
+                println!("Found LD_a16_ptr_SP")
+            },
+            Some(ADD_HL_BC) => {
+                println!("Found ADD_HL_BC")
+            },
+            Some(LD_A_BC_ptr) => {
+                println!("Found LD_A_BC_ptr")
+            },
+            Some(DEC_BC) => {
+                println!("Found DEC_BC")
+                self.load("BC", self.reg_bc() - 1);
+            },
+            Some(INC_C) => {
+                println!("Found INC_C")
+                self.load("C", self.reg_c() + 1);
+            },
+            Some(DEC_C) => {
+                println!("Found DEC_C")
+                self.load("C", self.reg_c() - 1);
+            },
+            Some(LD_C_d8) => {
+                println!("Found LD_C_d8")
+            },
+            Some(RRCA) => {
+                println!("Found RRCA")
+            },
+            _ => println!("Dunno what I found"),
+        }
     }
 }
 #[cfg(test)]
