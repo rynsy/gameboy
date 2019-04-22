@@ -19,8 +19,6 @@ impl Default for MMUnit {
 struct ROM {
     filename: String,
     title: String,
-    data: Vec<u8>,
-    data_ptr: u32,      //FIXME: doesn't need to be this big.
 }
 
 impl Default for ROM {
@@ -28,16 +26,14 @@ impl Default for ROM {
         ROM {
             filename: "test_file".to_string(),
             title: "test".to_string(),
-            data: vec![],
-            data_ptr: 0,
         }
     }
 }
 
 impl fmt::Display for ROM {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"ROM:\n\tFilename: {}\n\tTitle: {}\n\thas_data: {}\n\tdata_ptr: {}", 
-               self.filename, self.title, !self.data.is_empty(), self.data_ptr)
+        write!(f,"ROM:\n\tFilename: {}\n\tTitle: {}", 
+               self.filename, self.title)
     }
 }
 
@@ -60,16 +56,15 @@ impl MMUnit {
     }
 
     pub fn load_rom(&mut self) { //TODO pass filename/path
-        //let dir = String::from("C:\\Code\\rust\\gameboy\\data\\cpu_instrs\\individual\\01-special.gb");
-        let dir = String::from("/home/ryan/code/rust/gameboy/data/cpu_instrs/individual/01-special.gb");
+        let dir = String::from("C:\\Code\\rust\\gameboy\\data\\cpu_instrs\\individual\\01-special.gb");
+        //let dir = String::from("/home/ryan/code/rust/gameboy/data/cpu_instrs/individual/01-special.gb");
         let rom_data: Vec<u8> = fs::read(&dir).expect("Unable to read file"); 
         let rom = ROM {
             filename: dir,
             title: "test".to_string(),
-            data: rom_data,
-            data_ptr: 0,
         };
         self.rom_info = rom;
+        self.data[..rom_data.len()].clone_from_slice(&rom_data);
     }
 }
 
@@ -79,16 +74,23 @@ mod tests {
 
     #[test]
     fn test_write() {
-        let mut a: MMUnit = Default::default();
+        let mut a = MMUnit::default();
         a.set(0, 10);
     }
 
     #[test]
     fn test_read() {
         let val = 10;
-        let mut a: MMUnit = Default::default();
+        let mut a = MMUnit::default();
         a.set(0, val);
         let b = a.get(0);
         assert_eq!(val, b);
+    }
+
+    #[test]
+    fn test_open_file() {
+        let mut a = MMUnit::default();
+        a.load_rom();
+        assert_eq!(a.data.is_empty(), false);
     }
 }
