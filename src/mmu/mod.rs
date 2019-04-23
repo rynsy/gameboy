@@ -47,7 +47,7 @@ impl MMUnit {
     }
 
     pub fn get_hw(&self, addr: u16) -> u16 {
-        ((self.data[(addr+1) as usize] << 8) | self.data[(addr) as usize] ) as u16
+        ((u16::from(self.data[(addr+1) as usize]) << 8) | u16::from(self.data[(addr) as usize]) ) as u16
     }
 
     pub fn set_hw(&mut self, addr: u16, val: u16) {

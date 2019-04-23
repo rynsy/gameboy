@@ -1,10 +1,7 @@
 #![allow(dead_code)]
 
-pub mod opcodes;
-
 use std::fmt; 
 use crate::mmu::MMUnit;
-use self::opcodes::*;
 
 #[derive(Default)]
 pub struct CPU {
@@ -38,10 +35,10 @@ struct Registers {
 }
 
 pub enum Flag {
-    z,
-    n,
-    h,
-    c,
+    Z,
+    N,
+    H,
+    C,
 }
 
 impl Registers {
@@ -130,11 +127,23 @@ impl CPU {
     }
   
     fn alu_add(&mut self, v: u8) {
-
+        let carry = if self.flag_c() { 1 } else { 0 };
+        let a = self.reg.a;
+        let res = a.wrapping_add(v).wrapping_add(carry);
+        self.set_flag(Flag::Z, res == 0);
+        self.set_flag(Flag::H, ((a & 0xF) + (v & 0xF) + carry) > 0xF);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::C, (u16::from(a) + u16::from(v) + u16::from(carry)) > 0xFF);
     }
 
     fn alu_sub(&mut self, v: u8) {
-
+        let carry = if self.flag_c() { 1 } else { 0 };
+        let a = self.reg.a;
+        let res = a.wrapping_sub(v).wrapping_sub(carry);
+        self.set_flag(Flag::Z, res == 0);
+        self.set_flag(Flag::H, (a & 0x0F) < ((v & 0x0F) + carry));
+        self.set_flag(Flag::N, true);
+        self.set_flag(Flag::C, u16::from(a) < (u16::from(v) + u16::from(carry)));
     }
 
     fn alu_and(&mut self, v: u8) {
@@ -151,11 +160,10 @@ impl CPU {
 
     pub fn set_flag(&mut self, flag: Flag, val: bool) {
         let mut shift_val = match flag {
-            z => 7,
-            n => 6,
-            h => 5,
-            c => 4,
-            _ => panic!("Couldn't set a flag"),
+            Flag::Z => 7,
+            Flag::N => 6,
+            Flag::H => 5,
+            Flag::C => 4,
         };
         if val {
             self.reg.f |= 1 << shift_val;
@@ -183,62 +191,10 @@ impl CPU {
 
     #[allow(non_snake_case)]
     pub fn ex(&mut self, mem: MMUnit) {
-        let a = OpCode::from_u32(0);
-        match a {
-            Some(NOP) => {
-                println!("Found a NOP");
-            },
-            Some(LD_BC_d16) => {
-                println!("Found LD_BC_d16");
-            },
-            Some(LD_BC_ptr_d16) => {
-                println!("Found LD_BC_ptr_d16");
-            },
-            Some(INC_BC) => {
-                println!("Found INC_BC");
-                self.reg.set_bc(self.reg.get_bc() + 1);
-            },
-            Some(INC_B) => {
-                println!("Found INC_B");
-                self.reg.b += 1;
-            },
-            Some(DEC_B) => {
-                println!("Found DEC_B");
-                self.reg.b -= 1;
-            },
-            Some(LD_B_d8) => {
-                println!("Found LD_B_d8");
-            },
-            Some(RLCA) => {
-                println!("Found RLCA");
-            },
-            Some(LD_a16_ptr_SP) => {
-                println!("Found LD_a16_ptr_SP");
-            },
-            Some(ADD_HL_BC) => {
-                println!("Found ADD_HL_BC");
-            },
-            Some(LD_A_BC_ptr) => {
-                println!("Found LD_A_BC_ptr");
-            },
-            Some(DEC_BC) => {
-                println!("Found DEC_BC");
-                self.reg.set_bc(self.reg.get_bc() - 1);
-            },
-            Some(INC_C) => {
-                println!("Found INC_C");
-                self.reg.b += 1;
-            },
-            Some(DEC_C) => {
-                println!("Found DEC_C");
-                self.reg.b -= 1;
-            },
-            Some(LD_C_d8) => {
-                println!("Found LD_C_d8");
-            },
-            Some(RRCA) => {
-                println!("Found RRCA");
-            },
+        let op = self.imm(&mem);
+        match op {
+            0x00 => { 1; },
+            0x01 => { 1; },
             _ => println!("Dunno what I found"),
         }
     }

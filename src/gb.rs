@@ -3,6 +3,6 @@ use crate::cpu::CPU;
 
 #[derive(Default)]
 pub struct GameBoy {
-    cpu: CPU,
-    mmu: MMUnit,
+    pub cpu: CPU,
+    pub mmu: MMUnit,
 }
