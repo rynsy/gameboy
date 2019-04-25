@@ -1,8 +1,12 @@
-use crate::mmu::MMUnit;
 use crate::cpu::CPU;
 
 #[derive(Default)]
 pub struct GameBoy {
-    pub cpu: CPU,
-    pub mmu: MMUnit,
+    cpu: CPU,
+}
+
+impl GameBoy {
+    pub fn load_rom(&mut self) {
+        self.cpu.mem.load_rom();
+    }
 }
