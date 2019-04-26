@@ -232,6 +232,26 @@ impl CPU {
         (v >> 4) | (v << 4)
     }
 
+    fn alu_daa(&mut self) {
+        // decimal adjust register A
+    }
+
+    fn alu_cpl(&mut self) {
+        self.reg.a = !(self.reg.a);
+    }
+
+    fn alu_ccf(&mut self) {
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, !self.flag_c());
+    }
+
+    fn alu_scf(&mut self) {
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+    }
+
     pub fn set_flag(&mut self, flag: Flag, val: bool) {
         let shift_val = match flag {
             Flag::Z => 7,
