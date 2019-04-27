@@ -156,7 +156,7 @@ impl CPU {
     }
 
     fn alu_daa(&mut self) {
-        // decimal adjust register A
+        // convert register A to BCD
         let mut a = self.reg.a;
         let mut adjust = if self.flag_c() { 0x60 } else { 0x00 };
         if self.flag_h() { adjust |= 0x06; }
@@ -268,30 +268,36 @@ impl CPU {
     }
 
     fn alu_sra(&mut self, v: u8) -> u8 {
-        //TODO writeme
-        self.set_flag(Z, false);
+        // NOTE: May not need to return the result. 
+        // Don't know if the result is saved in the
+        //  register or not.
+        self.set_flag(C, 1 & v );
+        v = v >> 1;
+        self.set_flag(Z, v == 0 );
         self.set_flag(N, false);
         self.set_flag(H, false);
-        self.set_flag(C, true);
-        0
+        v
     }
 
     fn alu_srl(&mut self, v: u8) -> u8 {
-        //TODO writeme
-        self.set_flag(Z, false);
+        // NOTE: May not need to return the result. 
+        // Don't know if the result is saved in the
+        //  register or not.
+        //
+        //  TODO: set MSB = 0
+        self.set_flag(C, 1 & v );
+        v = v >> 1;
+        self.set_flag(Z, v == 0 );
         self.set_flag(N, false);
         self.set_flag(H, false);
-        self.set_flag(C, true);
-        0
+        v
     }
 
-    fn alu_bit(&mut self, b: u8, r: u8) -> bool{
-        //TODO writeme
-        self.set_flag(Z, false);
+    fn alu_bit(&mut self, b: u8, r: u8) {
+        // NOTE: Handle the (HL) case in ex()
+        self.set_flag(Z, ((1 << b) & r) == 0 );
         self.set_flag(N, false);
-        self.set_flag(H, false);
-        self.set_flag(C, true);
-        true
+        self.set_flag(H, true);
     }
 
     pub fn set_flag(&mut self, flag: Flag, val: bool) {
