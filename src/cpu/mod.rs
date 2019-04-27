@@ -234,6 +234,21 @@ impl CPU {
 
     fn alu_daa(&mut self) {
         // decimal adjust register A
+        let mut a = self.reg.a;
+        let mut adjust = if self.flag_c() { 0x60 } else { 0x00 };
+        if self.flag_h() { adjust |= 0x06; }
+
+        if !self.flag_n() {
+            if (a & 0x0F) > 0x09 { adjust |= 0x06 }
+            if a > 0x99 { adjust |= 0x60 }
+            a = a.wrapping_add(adjust);
+        } else {
+            a = a.wrapping_sub(adjust);
+        }
+
+        self.set_flag(Flag::Z, a == 0);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, adjust >= 0x60);
     }
 
     fn alu_cpl(&mut self) {
@@ -250,6 +265,110 @@ impl CPU {
         self.set_flag(Flag::N, false);
         self.set_flag(Flag::H, false);
         self.set_flag(Flag::C, true);
+    }
+
+    fn alu_rlca(&mut self) {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+    }
+
+    fn alu_rla(&mut self) {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+    }
+
+    fn alu_rrca(&mut self) {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+    }
+
+    fn alu_rra(&mut self) {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+    }
+
+    fn alu_rlc(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_rl(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_rrc(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_rr(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_sla(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_sra(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_srl(&mut self, v: u8) -> u8 {
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        0
+    }
+
+    fn alu_bit(&mut self, b: u8, r: u8) -> bool{
+        //TODO writeme
+        self.set_flag(Flag::Z, false);
+        self.set_flag(Flag::N, false);
+        self.set_flag(Flag::H, false);
+        self.set_flag(Flag::C, true);
+        true
     }
 
     pub fn set_flag(&mut self, flag: Flag, val: bool) {
