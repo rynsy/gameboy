@@ -271,12 +271,12 @@ impl CPU {
         // NOTE: May not need to return the result. 
         // Don't know if the result is saved in the
         //  register or not.
-        self.set_flag(C, 1 & v );
-        v = v >> 1;
-        self.set_flag(Z, v == 0 );
+        self.set_flag(C, (1 & v) != 0 );
+        let res = v >> 1;
+        self.set_flag(Z, res == 0 );
         self.set_flag(N, false);
         self.set_flag(H, false);
-        v
+        res
     }
 
     fn alu_srl(&mut self, v: u8) -> u8 {
@@ -285,12 +285,12 @@ impl CPU {
         //  register or not.
         //
         //  TODO: set MSB = 0
-        self.set_flag(C, 1 & v );
-        v = v >> 1;
-        self.set_flag(Z, v == 0 );
+        self.set_flag(C, (1 & v) != 0 );
+        let res = v >> 1;
+        self.set_flag(Z, res == 0 );
         self.set_flag(N, false);
         self.set_flag(H, false);
-        v
+        res 
     }
 
     fn alu_bit(&mut self, b: u8, r: u8) {
