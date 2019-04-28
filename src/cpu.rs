@@ -573,244 +573,260 @@ impl CPU {
                 self.alu_cpl();
             },
             0x30 => {
-
+                //TODO JR NC, r8 
             },
             0x31 => {
-
+                let v = u16::from(self.imm());
+                self.reg.sp = v;
             },
             0x32 => {
-
+                //TODO LD (HL-) , A
             },
             0x33 => {
-
+                self.reg.sp.wrapping_add(1);
             },
             0x34 => {
-
+                let v = self.reg.get_hl().wrapping_add(1);
+                self.reg.set_hl(v);
             },
             0x35 => {
-
+                let v = self.reg.get_hl().wrapping_sub(1);
+                self.reg.set_hl(v);
             },
             0x36 => {
-
+                let v = self.imm();
+                self.reg.set_hl(u16::from(v));
             },
             0x37 => {
-
+                self.alu_scf();
             },
             0x38 => {
-
+                //TODO JR C, r8
             },
             0x39 => {
-
+                self.alu_add_hw_hl(self.reg.sp);
             },
             0x3A => {
-
+                // TODO LD A, (HL-)
             },
             0x3B => {
-
+                let v = self.reg.sp.wrapping_sub(1);
+                self.reg.sp = v;
             },
             0x3C => {
-
+                self.reg.a = self.alu_inc(self.reg.a);
             },
             0x3D => {
-
+                self.reg.a = self.alu_dec(self.reg.a);
             },
             0x3E => {
-
+                let v = self.imm();
+                self.reg.a = v;
             },
             0x3F => {
-
+                self.alu_ccf();
             },
             0x40 => {
-
+                self.reg.b = self.reg.b;
             },
             0x41 => {
-
+                self.reg.b = self.reg.c;
             },
             0x42 => {
-
+                self.reg.b = self.reg.d;
             },
             0x43 => {
-
+                self.reg.b = self.reg.e;
             },
             0x44 => {
-
+                self.reg.b = self.reg.h;
             },
             0x45 => {
-
+                self.reg.b = self.reg.l;
             },
             0x46 => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.b = v;
             },
             0x47 => {
-
+                self.reg.b = self.reg.a;
             },
             0x48 => {
-
+                self.reg.c = self.reg.b;
             },
             0x49 => {
-
+                self.reg.c = self.reg.c;
             },
             0x4A => {
 
+                self.reg.c = self.reg.d;
             },
             0x4B => {
 
+                self.reg.c = self.reg.e;
             },
             0x4C => {
 
+                self.reg.c = self.reg.h;
             },
             0x4D => {
-
+                self.reg.c = self.reg.l;
             },
             0x4E => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.c = v;
             },
             0x4F => {
-
+                self.reg.c = self.reg.a;
             },
             0x50 => {
-
+                self.reg.d = self.reg.b;
             },
             0x51 => {
-
+                self.reg.d = self.reg.c;
             },
             0x52 => {
-
+                self.reg.d = self.reg.d;
             },
             0x53 => {
-
+                self.reg.d = self.reg.e;
             },
             0x54 => {
-
+                self.reg.d = self.reg.h;
             },
             0x55 => {
-
+                self.reg.d = self.reg.l;
             },
             0x56 => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.d = v;
             },
             0x57 => {
-
+                self.reg.d = self.reg.a;
             },
             0x58 => {
-
+                self.reg.e = self.reg.b;
             },
             0x59 => {
-
+                self.reg.e = self.reg.c;
             },
             0x5A => {
-
+                self.reg.e = self.reg.d;
             },
             0x5B => {
-
+                self.reg.e = self.reg.e;
             },
             0x5C => {
-
+                self.reg.e = self.reg.h;
             },
             0x5D => {
-
+                self.reg.e = self.reg.l;
             },
             0x5E => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.e = v;
             },
             0x5F => {
-
+                self.reg.e = self.reg.a;
             },
             0x60 => {
-
+                self.reg.h = self.reg.b;
             },
             0x61 => {
-
+                self.reg.h = self.reg.c;
             },
             0x62 => {
-
+                self.reg.h = self.reg.d;
             },
             0x63 => {
-
+                self.reg.h = self.reg.e;
             },
             0x64 => {
-
+                self.reg.h = self.reg.h;
             },
             0x65 => {
-
+                self.reg.h = self.reg.l;
             },
             0x66 => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.h = v;
             },
             0x67 => {
-
+                self.reg.h = self.reg.a;
             },
             0x68 => {
-
+                self.reg.l = self.reg.b;
             },
             0x69 => {
-
+                self.reg.l = self.reg.c;
             },
             0x6A => {
-
+                self.reg.l = self.reg.d;
             },
             0x6B => {
-
+                self.reg.l = self.reg.e;
             },
             0x6C => {
-
+                self.reg.l = self.reg.h;
             },
             0x6D => {
-
+                self.reg.l = self.reg.l;
             },
             0x6E => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.l = v;
             },
             0x6F => {
-
+                self.reg.l = self.reg.a;
             },
             0x70 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.b);
             },
             0x71 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.c);
             },
             0x72 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.d);
             },
             0x73 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.e);
             },
             0x74 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.h);
             },
             0x75 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.l);
             },
             0x76 => {
-
+                // TODO: HALT
             },
             0x77 => {
-
+                self.mem.set(self.reg.get_hl(), self.reg.a);
             },
             0x78 => {
-
+                self.reg.a = self.reg.b;
             },
             0x79 => {
-
+                self.reg.a = self.reg.c;
             },
             0x7A => {
-
+                self.reg.a = self.reg.d;
             },
             0x7B => {
-
+                self.reg.a = self.reg.e;
             },
             0x7C => {
-
+                self.reg.a = self.reg.h;
             },
             0x7D => {
-
+                self.reg.a = self.reg.l;
             },
             0x7E => {
-
+                let v = self.mem.get(self.reg.get_hl());
+                self.reg.a = v;
             },
             0x7F => {
-
+                self.reg.a = self.reg.a;
             },
             0x80 => {
 
