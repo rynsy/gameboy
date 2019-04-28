@@ -121,7 +121,7 @@ impl CPU {
         res
     }
 
-    fn alu_add_hw(&mut self, v: u16) {
+    fn alu_add_hw_hl(&mut self, v: u16) {
         let a = self.reg.get_hl();
         let res = a.wrapping_add(v);
         self.set_flag(N, false);
@@ -421,8 +421,58 @@ impl CPU {
     pub fn ex(&mut self) {
         let op = self.imm();
         match op {
-            0x00 => { 1; },
-            0x01 => { 1; },
+            0x00 => { },
+            0x01 => {
+                let v = self.imm_hw();
+                self.reg.set_bc(v);
+            },
+            0x02 => {
+                self.mem.set(self.reg.get_bc(), self.reg.a); 
+            },
+            0x03 => {
+                let v = self.reg.get_bc().wrapping_add(1);
+                self.reg.set_bc(v);
+            },
+            0x04 => {
+                self.reg.b = self.alu_inc(self.reg.b);
+            },
+            0x05 => {
+                self.reg.b = self.alu_dec(self.reg.b);
+            },
+            0x06 => {
+                self.reg.b = self.imm();
+            },
+            0x07 => {
+                self.reg.a = self.alu_rlc(self.reg.a);
+                self.set_flag(Z, false);
+            },
+            0x08 => {
+                let v = self.imm_hw();
+                self.mem.set_hw(v, self.reg.sp);
+            },
+            0x09 => {
+                self.alu_add_hw_hl(self.reg.get_bc());
+            },
+            0x0A => {
+                self.reg.a = self.mem.get(self.reg.get_bc());
+            },
+            0x0B => {
+                let v = self.reg.get_bc().wrapping_sub(1);
+                self.reg.set_bc(v);
+            },
+            0x0C => {
+                self.reg.c = self.alu_inc(self.reg.c);
+            },
+            0x0D => {
+                self.reg.c = self.alu_dec(self.reg.c);
+            },
+            0x0E => {
+                self.reg.c = self.imm();
+            },
+            0x0F => {
+                self.reg.a = self.alu_rrc(self.reg.a);
+                self.set_flag(Z, false);
+            },
             _ => println!("Dunno what I found"),
         }
     }
