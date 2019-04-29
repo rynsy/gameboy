@@ -1,5 +1,5 @@
-use std::fs;
 use std::fmt;
+use std::fs;
 
 pub struct MMUnit {
     data: Vec<u8>,
@@ -35,8 +35,7 @@ impl fmt::Display for ROM {
         write!(
             f,
             "ROM:\n\tFilename: {}\n\tTitle: {}",
-            self.filename,
-            self.title
+            self.filename, self.title
         )
     }
 }
@@ -52,8 +51,8 @@ impl MMUnit {
     }
 
     pub fn get_hw(&self, addr: u16) -> u16 {
-        ((u16::from(self.data[(addr + 1) as usize]) << 8) |
-             u16::from(self.data[(addr) as usize])) as u16
+        ((u16::from(self.data[(addr + 1) as usize]) << 8) | u16::from(self.data[(addr) as usize]))
+            as u16
     }
 
     pub fn set_hw(&mut self, addr: u16, val: u16) {
@@ -63,9 +62,8 @@ impl MMUnit {
 
     pub fn load_rom(&mut self) {
         //TODO pass filename/path
-        let dir = String::from(
-            "C:\\Code\\rust\\gameboy\\data\\cpu_instrs\\individual\\01-special.gb",
-        );
+        let dir =
+            String::from("C:\\Code\\rust\\gameboy\\data\\cpu_instrs\\individual\\01-special.gb");
         //let dir = String::from("/home/ryan/code/rust/gameboy/data/cpu_instrs/individual/01-special.gb");
         let rom_data: Vec<u8> = fs::read(&dir).expect("Unable to read file");
         let rom = ROM {

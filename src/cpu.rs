@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-use std::fmt;
 use super::mmu::MMUnit;
-use super::register::Register;
 use super::register::Flag;
-use super::register::Flag::{Z, H, N, C};
+use super::register::Flag::{C, H, N, Z};
+use super::register::Register;
+use std::fmt;
 
 #[derive(Default)]
 pub struct CPU {
@@ -34,7 +34,6 @@ impl fmt::Display for CPU {
         )
     }
 }
-
 
 impl CPU {
     fn imm(&mut self) -> u8 {
@@ -678,15 +677,12 @@ impl CPU {
                 self.reg.c = self.reg.c;
             }
             0x4A => {
-
                 self.reg.c = self.reg.d;
             }
             0x4B => {
-
                 self.reg.c = self.reg.e;
             }
             0x4C => {
-
                 self.reg.c = self.reg.h;
             }
             0x4D => {

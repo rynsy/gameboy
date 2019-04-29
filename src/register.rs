@@ -1,4 +1,3 @@
-
 /*
  *  TODO: May be able to refactor this using RefCell to get interior mutability.
  *  Reading: https://ricardomartins.cc/2016/06/08/interior-mutability
