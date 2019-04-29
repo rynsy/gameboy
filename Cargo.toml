@@ -5,6 +5,3 @@ authors = ["Ryan Lindsey <ryan.lindsey44@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-num = "0.2"
-num-traits = "0.2"
-num-derive = "0.2"
