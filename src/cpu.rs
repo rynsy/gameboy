@@ -60,24 +60,44 @@ impl CPU {
     }
 
     fn alu_add(&mut self, v: u8) {
-        let carry = if self.flag_c() { 1 } else { 0 };
         let a = self.reg.a;
-        let res = a.wrapping_add(v).wrapping_add(carry);
+        let res = a.wrapping_add(v);
         self.set_flag(Z, res == 0);
         self.set_flag(N, false);
-        self.set_flag(H, ((a & 0xF) + (v & 0xF) + carry) > 0xF);
-        self.set_flag(C, (u16::from(a) + u16::from(v) + u16::from(carry)) > 0xFF);
+        self.set_flag(H, ((a & 0xF) + (v & 0xF)) > 0xF);
+        self.set_flag(C, (u16::from(a) + u16::from(v)) > 0xFF);
+        self.reg.a = res;
+    }
+
+    fn alu_adc(&mut self, v: u8) {
+        let a = self.reg.a;
+        let c = u8::from(self.flag_c());
+        let res = a.wrapping_add(v).wrapping_add(c);
+        self.set_flag(Z, res == 0);
+        self.set_flag(N, false);
+        self.set_flag(H, ((a & 0xF) + (v & 0xF) + (c & 0xF)) > 0xF);
+        self.set_flag(C, (u16::from(a) + u16::from(v) + u16::from(c)) > 0xFF);
+        self.reg.a = res;
+    }
+
+    fn alu_sbc(&mut self, v: u8) {
+        let c = u8::from(self.flag_c());
+        let a = self.reg.a;
+        let res = a.wrapping_sub(v).wrapping_sub(c);
+        self.set_flag(Z, res == 0);
+        self.set_flag(N, true);
+        self.set_flag(H, (a & 0x0F) < ((v & 0x0F) + c));
+        self.set_flag(C, u16::from(a) < (u16::from(v) + u16::from(c)));
         self.reg.a = res;
     }
 
     fn alu_sub(&mut self, v: u8) {
-        let carry = if self.flag_c() { 1 } else { 0 };
         let a = self.reg.a;
-        let res = a.wrapping_sub(v).wrapping_sub(carry);
+        let res = a.wrapping_sub(v);
         self.set_flag(Z, res == 0);
         self.set_flag(N, true);
-        self.set_flag(H, (a & 0x0F) < ((v & 0x0F) + carry));
-        self.set_flag(C, u16::from(a) < (u16::from(v) + u16::from(carry)));
+        self.set_flag(H, (a & 0x0F) < (v & 0x0F));
+        self.set_flag(C, u16::from(a) < u16::from(v));
         self.reg.a = res;
     }
 
@@ -844,135 +864,274 @@ impl CPU {
             0x7F => {
                 self.reg.a = self.reg.a;
             }
-            0x80 => {}
-            0x81 => {}
-            0x82 => {}
-            0x83 => {}
-            0x84 => {}
-            0x85 => {}
-            0x86 => {}
-            0x87 => {}
-            0x88 => {}
-            0x89 => {}
-            0x8A => {}
-            0x8B => {}
-            0x8C => {}
-            0x8D => {}
-            0x8E => {}
-            0x8F => {}
-            0x90 => {}
-            0x91 => {}
-            0x92 => {}
-            0x93 => {}
-            0x94 => {}
-            0x95 => {}
-            0x96 => {}
-            0x97 => {}
-            0x98 => {}
-            0x99 => {}
-            0x9A => {}
-            0x9B => {}
-            0x9C => {}
-            0x9D => {}
-            0x9E => {}
-            0x9F => {}
-            0xA0 => {}
-            0xA1 => {}
-            0xA2 => {}
-            0xA3 => {}
-            0xA4 => {}
-            0xA5 => {}
-            0xA6 => {}
-            0xA7 => {}
-            0xA8 => {}
-            0xA9 => {}
-            0xAA => {}
-            0xAB => {}
-            0xAC => {}
-            0xAD => {}
-            0xAE => {}
-            0xAF => {}
-            0xB0 => {}
-            0xB1 => {}
-            0xB2 => {}
-            0xB3 => {}
-            0xB4 => {}
-            0xB5 => {}
-            0xB6 => {}
-            0xB7 => {}
-            0xB8 => {}
-            0xB9 => {}
-            0xBA => {}
-            0xBB => {}
-            0xBC => {}
-            0xBD => {}
-            0xBE => {}
-            0xBF => {}
-            0xC0 => {}
-            0xC1 => {}
-            0xC2 => {}
-            0xC3 => {}
-            0xC4 => {}
-            0xC5 => {}
-            0xC6 => {}
-            0xC7 => {}
-            0xC8 => {}
-            0xC9 => {}
-            0xCA => {}
-            0xCB => {}
-            0xCC => {}
-            0xCD => {}
-            0xCE => {}
-            0xCF => {}
-            0xD0 => {}
-            0xD1 => {}
-            0xD2 => {}
-            0xD3 => {}
-            0xD4 => {}
-            0xD5 => {}
-            0xD6 => {}
-            0xD7 => {}
-            0xD8 => {}
-            0xD9 => {}
-            0xDA => {}
-            0xDB => {}
-            0xDC => {}
-            0xDD => {}
-            0xDE => {}
-            0xDF => {}
-            0xE0 => {}
-            0xE1 => {}
-            0xE2 => {}
-            0xE3 => {}
-            0xE4 => {}
-            0xE5 => {}
-            0xE6 => {}
-            0xE7 => {}
-            0xE8 => {}
-            0xE9 => {}
-            0xEA => {}
-            0xEB => {}
-            0xEC => {}
-            0xED => {}
-            0xEE => {}
-            0xEF => {}
-            0xF0 => {}
-            0xF1 => {}
-            0xF2 => {}
-            0xF3 => {}
-            0xF4 => {}
-            0xF5 => {}
-            0xF6 => {}
-            0xF7 => {}
-            0xF8 => {}
-            0xF9 => {}
-            0xFA => {}
-            0xFB => {}
-            0xFC => {}
-            0xFD => {}
-            0xFE => {}
-            0xFF => {}
-            _ => println!("Dunno what I found"),
+            0x80 => self.alu_add(self.reg.b),
+            0x81 => self.alu_add(self.reg.c),
+            0x82 => self.alu_add(self.reg.d),
+            0x83 => self.alu_add(self.reg.e),
+            0x84 => self.alu_add(self.reg.h),
+            0x85 => self.alu_add(self.reg.l),
+            0x86 => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_add(v);
+            }
+            0x87 => self.alu_add(self.reg.a),
+            0x88 => self.alu_adc(self.reg.b),
+            0x89 => self.alu_adc(self.reg.c),
+            0x8A => self.alu_adc(self.reg.d),
+            0x8B => self.alu_adc(self.reg.e),
+            0x8C => self.alu_adc(self.reg.h),
+            0x8D => self.alu_adc(self.reg.l),
+            0x8E => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_adc(v);
+            }
+            0x8F => self.alu_adc(self.reg.a),
+            0x90 => self.alu_sub(self.reg.b),
+            0x91 => self.alu_sub(self.reg.c),
+            0x92 => self.alu_sub(self.reg.d),
+            0x93 => self.alu_sub(self.reg.e),
+            0x94 => self.alu_sub(self.reg.h),
+            0x95 => self.alu_sub(self.reg.l),
+            0x96 => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_sub(v);
+            }
+            0x97 => self.alu_sub(self.reg.a),
+            0x98 => self.alu_sbc(self.reg.b),
+            0x99 => self.alu_sbc(self.reg.c),
+            0x9A => self.alu_sbc(self.reg.d),
+            0x9B => self.alu_sbc(self.reg.e),
+            0x9C => self.alu_sbc(self.reg.h),
+            0x9D => self.alu_sbc(self.reg.l),
+            0x9E => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_sbc(v);
+            }
+            0x9F => self.alu_sbc(self.reg.a),
+            0xA0 => self.alu_and(self.reg.b),
+            0xA1 => self.alu_and(self.reg.c),
+            0xA2 => self.alu_and(self.reg.d),
+            0xA3 => self.alu_and(self.reg.e),
+            0xA4 => self.alu_and(self.reg.h),
+            0xA5 => self.alu_and(self.reg.l),
+            0xA6 => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_and(v);
+            }
+            0xA7 => self.alu_and(self.reg.a),
+            0xA8 => self.alu_xor(self.reg.b),
+            0xA9 => self.alu_xor(self.reg.c),
+            0xAA => self.alu_xor(self.reg.d),
+            0xAB => self.alu_xor(self.reg.e),
+            0xAC => self.alu_xor(self.reg.h),
+            0xAD => self.alu_xor(self.reg.l),
+            0xAE => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_xor(v);
+            }
+            0xAF => self.alu_xor(self.reg.a),
+            0xB0 => self.alu_or(self.reg.b),
+            0xB1 => self.alu_or(self.reg.c),
+            0xB2 => self.alu_or(self.reg.d),
+            0xB3 => self.alu_or(self.reg.e),
+            0xB4 => self.alu_or(self.reg.h),
+            0xB5 => self.alu_or(self.reg.l),
+            0xB6 => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_xor(v);
+            }
+            0xB7 => self.alu_or(self.reg.a),
+            0xB8 => self.alu_cp(self.reg.b),
+            0xB9 => self.alu_cp(self.reg.c),
+            0xBA => self.alu_cp(self.reg.d),
+            0xBB => self.alu_cp(self.reg.e),
+            0xBC => self.alu_cp(self.reg.h),
+            0xBD => self.alu_cp(self.reg.l),
+            0xBE => {
+                let v = self.mem.get(self.reg.get_hl());
+                self.alu_or(v);
+            }
+            0xBF => self.alu_cp(self.reg.a),
+            0xC0 => {
+                //TODO RET NZ
+            }
+            0xC1 => {
+                let v = self.stack_pop();
+                self.reg.set_bc(v);
+            }
+            0xC2 => {
+                //TODO JP NZ, a16
+            }
+            0xC3 => {
+                //TODO JP a16
+            }
+            0xC4 => {
+                //TODO CALL NZ, a16
+            }
+            0xC5 => self.stack_push(self.reg.get_bc()),
+            0xC6 => {
+                let v = self.imm();
+                self.alu_add(v);
+            }
+            0xC7 => {
+                //TODO RST 00H
+            }
+            0xC8 => {
+                //TODO RET Z
+            }
+            0xC9 => {
+                //TODO RET
+            }
+            0xCA => {
+                //TODO JP Z, a16
+            }
+            0xCB => {
+                //TODO PREFIX CB
+            }
+            0xCC => {
+                //TODO CALL Z, a16
+            }
+            0xCD => {
+                //TODO CALL a16
+            }
+            0xCE => {
+                let v = self.imm();
+                self.alu_adc(v);
+            }
+            0xCF => {
+                //TODO RST 08H
+            }
+            0xD0 => {
+                //TODO RET NC
+            }
+            0xD1 => {
+                let v = self.stack_pop();
+                self.reg.set_de(v);
+            }
+            0xD2 => {
+                //TODO JP NC, a16
+            }
+            0xD3 => {} // Not Impl.
+            0xD4 => {
+                //TODO CALL NC, a16
+            }
+            0xD5 => self.stack_push(self.reg.get_de()),
+            0xD6 => {
+                let v = self.imm();
+                self.alu_sub(v);
+            }
+            0xD7 => {
+                //TODO RST 10H
+            }
+            0xD8 => {
+                //TODO RET C
+            }
+            0xD9 => {
+                //TODO RETI
+            }
+            0xDA => {
+                //TODO JP C, a16
+            }
+            0xDB => {} // Not Impl.
+            0xDC => {
+                //TODO CALL C, a16
+            }
+            0xDD => {} // Not Impl.
+            0xDE => {
+                let v = self.imm();
+                self.alu_sbc(v);
+            }
+            0xDF => {
+                //TODO RST 18H
+            }
+            0xE0 => {
+                //TODO LDH (a8), A
+            }
+            0xE1 => {
+                let v = self.stack_pop();
+                self.reg.set_hl(v);
+            }
+            0xE2 => {
+                //TODO LD (C), A
+            }
+            0xE3 => {} // Not Impl.
+            0xE4 => {} // Not Impl.
+            0xE5 => self.stack_push(self.reg.get_hl()),
+            0xE6 => {
+                let v = self.imm();
+                self.alu_and(v);
+            }
+            0xE7 => {
+                // TODO RST 20H
+            }
+            0xE8 => {
+                //TODO ADD SP, r8
+            }
+            0xE9 => {
+                //TODO JP (HL)
+            }
+            0xEA => {
+                //TODO LD (a16) A
+            }
+            0xEB => {} // Not Impl.
+            0xEC => {} // Not Impl.
+            0xED => {} // Not Impl.
+            0xEE => {
+                let v = self.imm();
+                self.alu_xor(v);
+            }
+            0xEF => {
+                //TODO RST 28H
+            }
+            0xF0 => {
+                //TODO LDH A, (a8)
+            }
+            0xF1 => {
+                let v = self.stack_pop();
+                self.reg.set_af(v);
+            }
+            0xF2 => {
+                let v = self.mem.get(u16::from(self.reg.c));
+                self.reg.a = v;
+            }
+            0xF3 => {
+                //TODO DI
+            }
+            0xF4 => {} // Not Impl.
+            0xF5 => self.stack_push(self.reg.get_af()),
+            0xF6 => {
+                let v = self.imm();
+                self.alu_or(v);
+            }
+            0xF7 => {
+                //TODO RST 30H
+            }
+            0xF8 => {
+                //TODO LD HL, SP+r8
+                let v = self.reg.sp + u16::from(self.imm());
+                self.reg.set_hl(v);
+            }
+            0xF9 => {
+                self.reg.sp = self.reg.get_hl();
+            }
+            0xFA => {
+                //TODO check this.
+                let addr = self.imm_hw();
+                let v = self.mem.get(addr);
+                self.reg.a = v;
+            }
+            0xFB => {
+                //TODO EI
+            }
+            0xFC => {} // Not Impl.
+            0xFD => {} // Not Impl.
+            0xFE => {
+                let v = self.imm();
+                self.alu_cp(v);
+            }
+            0xFF => {
+                //TODO RST 38H
+            }
         }
     }
 }
