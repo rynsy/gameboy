@@ -1,4 +1,4 @@
-use crate::cpu::CPU;
+use super::cpu::CPU;
 
 #[derive(Default)]
 pub struct GameBoy {

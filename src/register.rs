@@ -34,32 +34,32 @@ pub enum Flag {
 
 impl Register {
     pub fn get_af(&self) -> u16 {
-        u16::from(self.a) << 8 | u16::from(self.f) 
+        u16::from(self.a) << 8 | u16::from(self.f)
     }
     pub fn set_af(&mut self, val: u16) {
-        self.a = (val >> 8) as u8; 
-        self.f = (val & 0x0F) as u8; 
+        self.a = (val >> 8) as u8;
+        self.f = (val & 0x0F) as u8;
     }
     pub fn get_bc(&self) -> u16 {
-        u16::from(self.b) << 8 | u16::from(self.c) 
+        u16::from(self.b) << 8 | u16::from(self.c)
     }
     pub fn set_bc(&mut self, val: u16) {
-        self.b = (val >> 8) as u8; 
-        self.c = (val & 0x0F) as u8; 
+        self.b = (val >> 8) as u8;
+        self.c = (val & 0x0F) as u8;
     }
     pub fn get_de(&self) -> u16 {
-        u16::from(self.d) << 8 | u16::from(self.e) 
+        u16::from(self.d) << 8 | u16::from(self.e)
     }
     pub fn set_de(&mut self, val: u16) {
-        self.d = (val >> 8) as u8; 
-        self.e = (val & 0x0F) as u8; 
+        self.d = (val >> 8) as u8;
+        self.e = (val & 0x0F) as u8;
     }
     pub fn get_hl(&self) -> u16 {
-        u16::from(self.h) << 8 | u16::from(self.l) 
+        u16::from(self.h) << 8 | u16::from(self.l)
     }
     pub fn set_hl(&mut self, val: u16) {
-        self.h = (val >> 8) as u8; 
-        self.l = (val & 0x0F) as u8; 
+        self.h = (val >> 8) as u8;
+        self.l = (val & 0x0F) as u8;
     }
 }
 
@@ -67,7 +67,7 @@ impl Default for Register {
     fn default() -> Register {
         Register {
             pc: 0x100,
-            sp: 0xFFFE,      /* Should be the highest available address in memory. Decrements before putting something on the stack. */
+            sp: 0xFFFE, /* Should be the highest available address in memory. Decrements before putting something on the stack. */
             a: 0,
             b: 0,
             c: 0,
