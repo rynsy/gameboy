@@ -59,6 +59,14 @@ impl CPU {
         val
     }
 
+    /*
+     * Add register to A
+     *
+     * Z - Set if result = 0
+     * N - Reset
+     * H - Set if lower nibble of A + reg. overflows bit 3
+     * C - Set if A + reg. overflows bit 7
+     */
     fn alu_add(&mut self, v: u8) {
         let a = self.reg.a;
         let res = a.wrapping_add(v);
@@ -69,6 +77,14 @@ impl CPU {
         self.reg.a = res;
     }
 
+    /*
+     * Add register to A through carry
+     *
+     * Z - Set if result = 0
+     * N - Reset
+     * H - Set if lower nibble of A + reg. + carry overflows bit 3
+     * C - Set if A + reg. + carry overflows bit 7
+     */
     fn alu_adc(&mut self, v: u8) {
         let a = self.reg.a;
         let c = u8::from(self.flag_c());
@@ -80,6 +96,32 @@ impl CPU {
         self.reg.a = res;
     }
 
+    /*
+     * Sub register from A
+     *
+     * Z - Set if result = 0
+     * N - Set
+     * H - Set if lower nibble of A < lower nibble of register
+     * C - Set if reg A < register
+     */
+    fn alu_sub(&mut self, v: u8) {
+        let a = self.reg.a;
+        let res = a.wrapping_sub(v);
+        self.set_flag(Z, res == 0);
+        self.set_flag(N, true);
+        self.set_flag(H, (a & 0x0F) < (v & 0x0F));
+        self.set_flag(C, u16::from(a) < u16::from(v));
+        self.reg.a = res;
+    }
+
+    /*
+     * Sub register from A through carry
+     *
+     * Z - Set if result = 0
+     * N - Set
+     * H - Set if lower nibble of A < lower nibble of register + carry
+     * C - Set if reg A < register + carry
+     */
     fn alu_sbc(&mut self, v: u8) {
         let c = u8::from(self.flag_c());
         let a = self.reg.a;
@@ -91,16 +133,14 @@ impl CPU {
         self.reg.a = res;
     }
 
-    fn alu_sub(&mut self, v: u8) {
-        let a = self.reg.a;
-        let res = a.wrapping_sub(v);
-        self.set_flag(Z, res == 0);
-        self.set_flag(N, true);
-        self.set_flag(H, (a & 0x0F) < (v & 0x0F));
-        self.set_flag(C, u16::from(a) < u16::from(v));
-        self.reg.a = res;
-    }
-
+    /*
+     * AND register with A
+     *
+     * Z - Set if result = 0
+     * N - Reset
+     * H - Set
+     * C - Reset
+     */
     fn alu_and(&mut self, v: u8) {
         let res = self.reg.a & v;
         self.set_flag(Z, res == 0);
@@ -110,6 +150,14 @@ impl CPU {
         self.reg.a = res;
     }
 
+    /*
+     * OR register with A
+     *
+     * Z - Set if result = 0
+     * N - Reset
+     * H - Reset
+     * C - Reset
+     */
     fn alu_or(&mut self, v: u8) {
         let res = self.reg.a | v;
         self.set_flag(Z, res == 0);
@@ -119,6 +167,14 @@ impl CPU {
         self.reg.a = res;
     }
 
+    /*
+     * XOR register with A
+     *
+     * Z - Set if result = 0
+     * N - Reset
+     * H - Reset
+     * C - Reset
+     */
     fn alu_xor(&mut self, v: u8) {
         let res = self.reg.a | v;
         self.set_flag(Z, res == 0);
@@ -128,20 +184,41 @@ impl CPU {
         self.reg.a = res;
     }
 
+    /*
+     * Compare register to A
+     *  Subtract reg from A, then set A
+     *  back to original value
+     */
     fn alu_cp(&mut self, v: u8) {
         let res = self.reg.a;
         self.alu_sub(v);
         self.reg.a = res;
     }
 
+    /*
+     * Decrement value
+     *
+     * Z - Set if result = 0
+     * H - Set if lower nibble = 0
+     * N - Set
+     * C - N/A
+     */
     fn alu_dec(&mut self, v: u8) -> u8 {
         let res = v.wrapping_add(1);
         self.set_flag(Z, res == 0);
-        self.set_flag(N, true);
         self.set_flag(H, (res & 0xF) == 0);
+        self.set_flag(N, true);
         res
     }
 
+    /*
+     * Increment value
+     *
+     * Z - Set if result = 0
+     * H - Set if bit 3 overflow
+     * N - Reset
+     * C - N/A
+     */
     fn alu_inc(&mut self, v: u8) -> u8 {
         let res = v.wrapping_add(1);
         self.set_flag(Z, res == 0);
@@ -150,6 +227,14 @@ impl CPU {
         res
     }
 
+    /*
+     * Add half-word to HL register
+     *
+     * Z - N/A
+     * N - Reset
+     * H - Set if bit 11 overflow
+     * C - Set if bit 15 overflow
+     */
     fn alu_add_hw_hl(&mut self, v: u16) {
         let a = self.reg.get_hl();
         let res = a.wrapping_add(v);
@@ -159,6 +244,15 @@ impl CPU {
         self.reg.set_hl(res);
     }
 
+    /*
+     *  Add a half-word (2 bytes) to the immediate
+     *  value.
+     *
+     *  Z - Reset
+     *  N - Reset
+     *  H - Set if bit 3 overflow
+     *  C - Set if bit 7 overflow
+     */
     fn alu_add_hw_imm(&mut self, v: u16) -> u16 {
         let a = self.imm() as i8 as i16 as u16; // TODO This is signed, test this conversion.
         self.set_flag(Z, false);
@@ -268,7 +362,6 @@ impl CPU {
      *  C - Contains old bit 7 data
      */
     fn alu_rlc(&mut self, v: u8) -> u8 {
-        //TODO check this
         let c_res = (v & (1 << 7)) != 0;
         let res = v << 1;
         self.set_flag(Z, res == 0);
