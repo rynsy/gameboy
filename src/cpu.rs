@@ -514,8 +514,12 @@ impl CPU {
         !(1 << b) & r
     }
 
-    fn alu_jr(&mut self) {
+    /*
+     * Jump to address of next half-word
+     */
+    fn alu_jp(&mut self) {
         // TODO writeme
+        self.reg.pc = self.imm_hw(); // Right?
     }
 
     pub fn set_flag(&mut self, flag: Flag, val: bool) {
@@ -603,7 +607,7 @@ impl CPU {
                 self.reg.a = self.alu_rl(self.reg.a);
                 self.set_flag(Z, false);
             }
-            0x18 => self.alu_jr(),
+            0x18 => self.reg.pc += u16::from(self.imm()), // TODO check this
             0x19 => self.alu_add_hw_hl(self.reg.get_de()),
             0x1A => self.reg.a = self.mem.get(self.reg.get_de()),
             0x1B => self.reg.set_de(self.reg.get_de().wrapping_sub(1)),
@@ -614,7 +618,11 @@ impl CPU {
                 //TODO RRA
             }
             0x20 => {
-                //TODO JR NC,r8
+                if !self.flag_z() {
+                    self.reg.pc += u16::from(self.imm()); //TODO JR NC,r8
+                } else {
+                    self.reg.pc += 1;
+                }
             }
             0x21 => {
                 let v = self.imm_hw();
@@ -622,6 +630,9 @@ impl CPU {
             }
             0x22 => {
                 //TODO LD (HL+), A
+                let addr = self.reg.get_hl();
+                self.mem.set(addr, self.reg.a);
+                self.reg.set_hl(addr + 1);
             }
             0x23 => self.reg.set_hl(self.reg.get_hl().wrapping_add(1)),
             0x24 => self.reg.h = self.alu_inc(self.reg.h),
@@ -630,10 +641,16 @@ impl CPU {
             0x27 => self.alu_daa(),
             0x28 => {
                 //TODO JR Z, r8
+                if self.flag_z() {
+                    self.reg.pc += u16::from(self.imm());
+                }
             }
             0x29 => self.alu_add_hw_hl(self.reg.get_hl()),
             0x2A => {
-                //TODO LD A, (HL+)
+                let addr = self.reg.get_hl();
+                let v = self.mem.get(addr);
+                self.reg.a = v;
+                self.reg.set_hl(addr + 1);
             }
             0x2B => self.reg.set_hl(self.reg.get_hl().wrapping_sub(1)),
             0x2C => self.reg.l = self.alu_inc(self.reg.l),
@@ -641,14 +658,20 @@ impl CPU {
             0x2E => self.reg.l = self.imm(),
             0x2F => self.alu_cpl(),
             0x30 => {
-                //TODO JR NC, r8
+                if !self.flag_c() {
+                    self.reg.pc += u16::from(self.imm());
+                } else {
+                    self.reg.pc += 1;
+                }
             }
             0x31 => {
                 let v = u16::from(self.imm());
                 self.reg.sp = v;
             }
             0x32 => {
-                //TODO LD (HL-) , A
+                let addr = self.reg.get_hl();
+                self.mem.set(addr, self.reg.a);
+                self.reg.set_hl(addr - 1);
             }
             0x33 => self.reg.sp += 1,
             0x34 => {
@@ -665,11 +688,18 @@ impl CPU {
             }
             0x37 => self.alu_scf(),
             0x38 => {
-                //TODO JR C, r8
+                if self.flag_c() {
+                    self.reg.pc += u16::from(self.imm());
+                } else {
+                    self.reg.pc += 1;
+                }
             }
             0x39 => self.alu_add_hw_hl(self.reg.sp),
             0x3A => {
-                // TODO LD A, (HL-)
+                let addr = self.reg.get_hl();
+                let v = self.mem.get(addr);
+                self.reg.a = v;
+                self.reg.set_hl(addr - 1);
             }
             0x3B => {
                 let v = self.reg.sp.wrapping_sub(1);
@@ -858,20 +888,29 @@ impl CPU {
             }
             0xBF => self.alu_cp(self.reg.a),
             0xC0 => {
-                //TODO RET NZ
+                if !self.flag_z() {
+                    self.reg.pc = self.stack_pop();
+                }
             }
             0xC1 => {
                 let v = self.stack_pop();
                 self.reg.set_bc(v);
             }
             0xC2 => {
-                //TODO JP NZ, a16
+                if !self.flag_z() {
+                    self.alu_jp();
+                }
             }
             0xC3 => {
-                //TODO JP a16
+                self.alu_jp();
             }
             0xC4 => {
-                //TODO CALL NZ, a16
+                if !self.flag_z() {
+                    self.stack_push(self.reg.pc + 2);
+                    self.reg.pc = self.mem.get_hw(self.reg.pc);
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xC5 => self.stack_push(self.reg.get_bc()),
             0xC6 => {
@@ -879,46 +918,69 @@ impl CPU {
                 self.alu_add(v);
             }
             0xC7 => {
-                //TODO RST 00H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x00;
             }
             0xC8 => {
-                //TODO RET Z
+                if self.flag_z() {
+                    self.reg.pc = self.stack_pop();
+                }
             }
             0xC9 => {
-                //TODO RET
+                self.reg.pc = self.stack_pop();
             }
             0xCA => {
-                //TODO JP Z, a16
+                if self.flag_z() {
+                    self.alu_jp();
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xCB => {
                 //TODO PREFIX CB
             }
             0xCC => {
-                //TODO CALL Z, a16
+                if self.flag_z() {
+                    self.stack_push(self.reg.pc + 2);
+                    self.reg.pc = self.mem.get_hw(self.reg.pc);
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xCD => {
-                //TODO CALL a16
+                self.stack_push(self.reg.pc + 2);
+                self.reg.pc = self.mem.get_hw(self.reg.pc);
             }
             0xCE => {
                 let v = self.imm();
                 self.alu_adc(v);
             }
             0xCF => {
-                //TODO RST 08H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x08;
             }
             0xD0 => {
-                //TODO RET NC
+                if !self.flag_c() {
+                    self.reg.pc = self.stack_pop();
+                }
             }
             0xD1 => {
                 let v = self.stack_pop();
                 self.reg.set_de(v);
             }
             0xD2 => {
-                //TODO JP NC, a16
+                if !self.flag_c() {
+                    self.alu_jp();
+                }
             }
             0xD3 => {} // Not Impl.
             0xD4 => {
-                //TODO CALL NC, a16
+                if !self.flag_c() {
+                    self.stack_push(self.reg.pc + 2);
+                    self.reg.pc = self.mem.get_hw(self.reg.pc);
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xD5 => self.stack_push(self.reg.get_de()),
             0xD6 => {
@@ -926,20 +988,34 @@ impl CPU {
                 self.alu_sub(v);
             }
             0xD7 => {
-                //TODO RST 10H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x10;
             }
             0xD8 => {
-                //TODO RET C
+                if self.flag_c() {
+                    self.reg.pc = self.stack_pop();
+                }
             }
             0xD9 => {
                 //TODO RETI
+                // TODO Need to enable interrupts after the jump
+                self.reg.pc = self.stack_pop();
             }
             0xDA => {
-                //TODO JP C, a16
+                if self.flag_c() {
+                    self.alu_jp();
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xDB => {} // Not Impl.
             0xDC => {
-                //TODO CALL C, a16
+                if self.flag_c() {
+                    self.stack_push(self.reg.pc + 2);
+                    self.reg.pc = self.mem.get_hw(self.reg.pc);
+                } else {
+                    self.reg.pc += 2;
+                }
             }
             0xDD => {} // Not Impl.
             0xDE => {
@@ -947,18 +1023,18 @@ impl CPU {
                 self.alu_sbc(v);
             }
             0xDF => {
-                //TODO RST 18H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x18;
             }
             0xE0 => {
-                //TODO LDH (a8), A
+                let addr = 0xFF00 | u16::from(self.imm());
+                self.mem.set(addr, self.reg.a);
             }
             0xE1 => {
                 let v = self.stack_pop();
                 self.reg.set_hl(v);
             }
-            0xE2 => {
-                //TODO LD (C), A
-            }
+            0xE2 => self.mem.set(0xFF00 | u16::from(self.reg.c), self.reg.a),
             0xE3 => {} // Not Impl.
             0xE4 => {} // Not Impl.
             0xE5 => self.stack_push(self.reg.get_hl()),
@@ -967,16 +1043,18 @@ impl CPU {
                 self.alu_and(v);
             }
             0xE7 => {
-                // TODO RST 20H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x20;
             }
             0xE8 => {
                 //TODO ADD SP, r8
             }
             0xE9 => {
-                //TODO JP (HL)
+                self.reg.pc = self.reg.get_hl();
             }
             0xEA => {
-                //TODO LD (a16) A
+                let addr = self.imm_hw();
+                self.mem.set(addr, self.reg.a);
             }
             0xEB => {} // Not Impl.
             0xEC => {} // Not Impl.
@@ -986,10 +1064,13 @@ impl CPU {
                 self.alu_xor(v);
             }
             0xEF => {
-                //TODO RST 28H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x28;
             }
             0xF0 => {
-                //TODO LDH A, (a8)
+                let addr = 0xFF00 | u16::from(self.imm());
+                let v = self.mem.get(addr);
+                self.reg.a = v;
             }
             0xF1 => {
                 let v = self.stack_pop();
@@ -1009,10 +1090,13 @@ impl CPU {
                 self.alu_or(v);
             }
             0xF7 => {
-                //TODO RST 30H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x30;
             }
             0xF8 => {
                 //TODO LD HL, SP+r8
+                //
+                //TODO set flags.
                 let v = self.reg.sp + u16::from(self.imm());
                 self.reg.set_hl(v);
             }
@@ -1020,7 +1104,6 @@ impl CPU {
                 self.reg.sp = self.reg.get_hl();
             }
             0xFA => {
-                //TODO check this.
                 let addr = self.imm_hw();
                 let v = self.mem.get(addr);
                 self.reg.a = v;
@@ -1035,7 +1118,8 @@ impl CPU {
                 self.alu_cp(v);
             }
             0xFF => {
-                //TODO RST 38H
+                self.stack_push(self.reg.pc);
+                self.reg.pc = 0x38;
             }
         }
     }
