@@ -10,6 +10,7 @@ use std::fmt;
 pub struct CPU {
     reg: Register,
     pub mem: MMUnit, //TODO not sure it needs to be public.
+    halted: bool,
 }
 
 impl fmt::Display for CPU {
@@ -36,23 +37,45 @@ impl fmt::Display for CPU {
 }
 
 impl CPU {
+
+    fn cycle(&mut self) -> u16 {
+        if self.halted {
+            1
+        } else {
+            0
+        }
+    }
+
+    /*
+     * Return immediate byte from memory (addr that PC is pointing to)
+     */
     fn imm(&mut self) -> u8 {
         let val = self.mem.get(self.reg.pc);
         self.reg.pc += 1;
         val
     }
 
+    /*
+     * Return immediate two bytes (half-word)
+     * from memory (starting with addr that PC is pointing to)
+     */
     fn imm_hw(&mut self) -> u16 {
         let val = self.mem.get_hw(self.reg.pc);
         self.reg.pc += 2;
         val
     }
 
+    /*
+     * Push a half-word onto the stack
+     */
     fn stack_push(&mut self, val: u16) {
         self.reg.sp -= 2;
         self.mem.set_hw(self.reg.sp, val);
     }
 
+    /*
+     * Pop a half-word from the top of the stack
+     */
     fn stack_pop(&mut self) -> u16 {
         let val = self.mem.get_hw(self.reg.sp);
         self.reg.sp += 2;
